@@ -2,6 +2,7 @@
 var express = require('express');
 const request = require('request');
 var router = express.Router();
+var connection = require('./mysql_connection');
 
 /* グローバル変数 */
 const BookData = JSON.stringify(require("../bookdata.json"));
@@ -28,8 +29,8 @@ function doRequest(option) {
 router.get('/', async function(req, res, next) {
   const isbn = req.query.isbn;
   const option = {
+    method: "GET",
     url: "https://www.googleapis.com/books/v1/volumes",
-    headers: "application/json",
     qs: {
       q: "isbn:" + isbn,
       Country: "JP"
@@ -37,14 +38,12 @@ router.get('/', async function(req, res, next) {
   }
   var googlebook = await doRequest(option);
   var googlebook = googlebook.items[0]
-  var book = BookData;
+  var book = JSON.parse(BookData);
   book.author = googlebook.volumeInfo.authors.join(",");
   book.title = googlebook.volumeInfo.title;
   book.imgUrl = googlebook.volumeInfo.imageLinks.thumbnail;
   book.pageData.total = googlebook.volumeInfo.pageCount;
-  res.json(books);
+  res.json(book);
 });
-
-
 
 module.exports = router;
