@@ -3,6 +3,9 @@ var express = require('express');
 const request = require('request');
 var router = express.Router();
 var connection = require('./mysql_connection');
+connection.query("select * from STATISTICS", function(err, rows) {
+  console.log(rows);
+});
 
 /* グローバル変数 */
 const BookData = JSON.stringify(require("../bookdata.json"));
