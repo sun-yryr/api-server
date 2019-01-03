@@ -1,4 +1,4 @@
-var mysql = require('mysql');
+var mysql = require('mysql2');
 var connection = mysql.createConnection(process.env.MYSQL_URL);
 module.exports = connection;
 
