@@ -22,11 +22,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/shiwori/', signRouter);
 app.use('/shiwori/book', bookRouter);
 app.use('/shiwori/user', userRouter);
 app.use('/shiwori/bookmark', markRouter);
 app.use('/shiwori/record', recordRouter);
-app.use('/shiwori/', signRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
