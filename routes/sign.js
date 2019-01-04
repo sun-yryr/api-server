@@ -1,17 +1,20 @@
 /* パッケージ読み込み */
 var express = require('express');
 var router = express.Router();
+var util = require('util');
+var uuid = require('uuid');
 const shiwori = require('./shiwori_auth');
 var connection = require('./mysql_connection');
 
 /* グローバル変数 */
 
 /* 関数 */
-async function query(query) {
+function connection2(query) {
   return new Promise(function(resolve, reject) {
     connection.query(query, function(err, rows) {
-      if(!err) {
-        reject(null);
+      if(err) {
+        console.log(err);
+        reject("err");
       } else {
         resolve(rows);
       }
@@ -34,31 +37,56 @@ router.all('/*(\(signup\)|\(signin\)|\(book\)|\(bookmark\)|\(record\)|\(user\))'
 });
 
 /* 登録 */
-router.post('/signup', function(req, res, next) {
+router.post('/signup', async function(req, res, next) {
+  var date = new Date();
+  var time_msec = date.getTime();
+  var unixtime = Math.floor(time_msec / 1000);
   const body = req.body;
   console.log("signup...");
-  var db_res = await query("select * from USERS where email = "+body.users);
+  var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 0) {
     res.status(400);
     res.json({"message": "this e-mail is used."});
     next();
   }
   //uuid　または　ユニークなidの生成
+  var userid = uuid.v4();
+  console.log(typeof(userid));
+  var query = 'INSERT INTO USERS ';
+  query += util.format('VALUES ("%s", "%s", "", 0, 0, 0, "%s", null, "%s", "%s", "%s")', userid, body.name, unixtime, unixtime, body.email, body.password);
+  connection.query(query, function(err, rows) {
+    if(err) {
+      console.log(err);
+    }
+  });
 
-  var query = "";
-  connection.query();
-  connection.query();
-  connection.query();
-  connection.query();
-  //セクションidを生成、ログイン済のテーブルに追加
-
-  connection.query();
+  query = util.format('INSERT INTO STATISTICS VALUES ("%s")', userid);
+  connection.query(query, function(err, rows) {
+    if(err) {
+      console.log(err);
+    }
+  });
   res.status(200);
   res.json({
     //return_DATA
+    "userinfo": {
+      "name": body.name,
+      "userid": userid,
+      "introduction": "",
+      "create_date": unixtime,
+      "update_date": unixtime,
+      "email": body.email,
+      "all_readtime": 0,
+      "all_readbooks": 0,
+      "speed": 0
+    },
+    "records": {},
+    "bookmarks": {},
+    "statistics": {}
   });
 });
 
+/*
 router.post('/signin', function(req, res, next) {
   const body = req.body;
   console.log("singin...");
@@ -86,5 +114,6 @@ router.post('/signin', function(req, res, next) {
     //return_DATA
   });
 });
+*/
 
 module.exports = router;
