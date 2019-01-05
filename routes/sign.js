@@ -3,10 +3,28 @@ var express = require('express');
 var router = express.Router();
 var util = require('util');
 var uuid = require('uuid');
+const request = require('request');
 const shiwori = require('./shiwori_auth');
 var connection = require('./mysql_connection');
 
 /* グローバル変数 */
+const default_user_data = {
+  //return_DATA
+  "userinfo": {
+    "name": "",
+    "userid": "",
+    "introduction": "",
+    "create_date": 0,
+    "update_date": 0,
+    "email": "",
+    "all_readtime": 0,
+    "all_readbooks": 0,
+    "speed": 0
+  },
+  "records": [],
+  "bookmarks": [],
+  "statistics":[]
+};
 
 /* 関数 */
 function connection2(query) {
@@ -17,6 +35,73 @@ function connection2(query) {
         reject("err");
       } else {
         resolve(rows);
+      }
+    });
+  });
+}
+
+function UserCreate(body) {
+  return new Promise(function(resolve, reject) {
+    var date = new Date();
+    var time_msec = date.getTime();
+    var unixtime = Math.floor(time_msec / 1000);
+    //uuid　または　ユニークなidの生成
+    var userid = uuid.v4();
+    let userdata = default_user_data;
+    userdata.userinfo.name = body.name;
+    userdata.userinfo.userid = userid;
+    userdata.userinfo.create_date = unixtime;
+    userdata.userinfo.update_date = unixtime;
+    userdata.userinfo.email = body.email;
+    //データベースアクセス
+    var query = 'INSERT INTO USERS ';
+    query += util.format('VALUES ("%s", "%s", "", 0, 0, 0, "%s", null, "%s", "%s", "%s")', userid, body.name, unixtime, unixtime, body.email, body.password);
+    connection.query(query, function(err, rows) {
+      if(err) {
+        console.log(err);
+        reject(err);
+      } else {
+        query = util.format('INSERT INTO STATISTICS VALUES ("%s")', userid);
+        connection.query(query, function(err, rows) {
+          if(err) {
+            console.log(err);
+            reject(err);
+          } else {
+            resolve(userdata);
+          }
+        });
+      }
+    });
+  });
+}
+
+function getBookData(isbn) {
+  return new Promise(function(resolve, reject) {
+    const option = {
+      method: "GET",
+      url: "https://www.googleapis.com/books/v1/volumes",
+      qs: {
+        q: "isbn:" + isbn,
+        Country: "JP"
+      }
+    };
+    request(option, function(error, res, body) {
+      if(!error && res.statusCode == 200) {
+        var a = JSON.parse(body);
+        var googlebook = a.items[0];
+        var tmp = {
+          "author": googlebook.volumeInfo.authors.join(","),
+          "title": googlebook.volumeInfo.title,
+          "imgUrl": googlebook.volumeInfo.imageLinks.thumbnail,
+          "publication": "",
+          "pageData":{
+              "total": googlebook.volumeInfo.pageCount,
+              "now"  : googlebook.volumeInfo.pageCount
+          }
+        };
+        resolve(tmp);
+      } else {
+        reject(error);
       }
     });
   });
@@ -38,9 +123,6 @@ router.all('/*(\(signup\)|\(signin\)|\(book\)|\(bookmark\)|\(record\)|\(user\))'
 
 /* 登録 */
 router.post('/signup', async function(req, res, next) {
-  var date = new Date();
-  var time_msec = date.getTime();
-  var unixtime = Math.floor(time_msec / 1000);
   const body = req.body;
   console.log("signup...");
   var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
@@ -49,71 +131,82 @@ router.post('/signup', async function(req, res, next) {
     res.json({"message": "this e-mail is used."});
     next();
   }
-  //uuid　または　ユニークなidの生成
-  var userid = uuid.v4();
-  console.log(typeof(userid));
-  var query = 'INSERT INTO USERS ';
-  query += util.format('VALUES ("%s", "%s", "", 0, 0, 0, "%s", null, "%s", "%s", "%s")', userid, body.name, unixtime, unixtime, body.email, body.password);
-  connection.query(query, function(err, rows) {
-    if(err) {
-      console.log(err);
-    }
-  });
-
-  query = util.format('INSERT INTO STATISTICS VALUES ("%s")', userid);
-  connection.query(query, function(err, rows) {
-    if(err) {
-      console.log(err);
-    }
-  });
-  res.status(200);
-  res.json({
-    //return_DATA
-    "userinfo": {
-      "name": body.name,
-      "userid": userid,
-      "introduction": "",
-      "create_date": unixtime,
-      "update_date": unixtime,
-      "email": body.email,
-      "all_readtime": 0,
-      "all_readbooks": 0,
-      "speed": 0
-    },
-    "records": {},
-    "bookmarks": {},
-    "statistics": {}
+  UserCreate(body).then(function(value) {
+    res.status(200);
+    res.json(value);
+  }).catch(function(err) {
+    res.status(500);
+    res.json({"message": "DataBase Error(can't write)"});
   });
 });
 
-/*
-router.post('/signin', function(req, res, next) {
+
+router.post('/signin', async function(req, res, next) {
   const body = req.body;
   console.log("singin...");
-  var db_res = await query("select * from USERS where email = "+body.users);
-  if (db_res.length == 0 || db_res[0].password != body.password) {
+  var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
+  if (db_res.length != 1 || db_res[0].password != body.password) {
     res.status(400);
     res.json({"message": "e-mail or password is invalid."});
     next();
   }
-  var tmp_info = query(query);
-  var tmp_record = query();
-  var tmp_static = query();
-  var tmp_bookmark = query();
-  var user_info = await tmp_info;
-  var user_record = await tmp_record;
-  var user_static = await tmp_static;
-  var user_bookmark = await tmp_bookmark;
-  if (user_info == null | user_record == null | user_static == null | user_bookmark == null) {
+  var query = "select * from RECORDS where userid = '" + db_res.id + "'";
+  var user_info = db_res;
+  var user_record = await connection2(query).catch((err) => null);
+  query = "select * from STATISTICS where userid = '" + db_res.id + "'";
+  var user_static = await connection2(query).catch((err) => null);
+  query = "select * from BOOKMARKS where userid = '" + db_res.id + "'";
+  var user_bookmark = await connection2(query).catch((err) => null);
+  if (user_record == null | user_static == null | user_bookmark == null) {
     res.status(500);
     res.json({"message": "DataBase Error(can't read)"});
     next();
   }
+  var date = new Date();
+  var time_msec = date.getTime();
+  var unixtime = Math.floor(time_msec / 1000);
+  var userdata = default_user_data;
+  userdata.userinfo.name = user_info[0].name;
+  userdata.userinfo.userid = user_info[0].id;
+  userdata.userinfo.introduction = user_info[0].inroduction;
+  userdata.userinfo.all_readtime = user_info[0].all_readtime;
+  userdata.userinfo.all_readbooks = user_info[0].all_readbooks;
+  userdata.userinfo.create_date = user_info[0].create_date;
+  userdata.userinfo.update_date = unixtime;
+  userdata.userinfo.speed = user_info[0].speed;
+  userdata.userinfo.email = user_info[0].email;
+  for(var i=0; i<user_record.length; i++) {
+    let tmp = {
+      "id": user_record[i].id,
+      "username": user_record[i].username,
+      "star": user_record[i].star,
+      "impression": user_record[i].impression,
+      "readtime": user_record[i].readtime,
+      "readspeed": user_record[i].readspeed,
+      "update_date": user_record[i].update_date,
+      "book": null
+    };
+    tmp.book = await getBookData(user_record[i].isbn).catch((err) => null);
+    userdata.records.push(tmp);
+  }
+  for(var i=0; i>user_bookmark.length; i++) {
+    let tmp = {
+      "id": user_bookmark[i].id,
+      "page": user_bookmark[i].page,
+      "memo": user_bookmark[i].memo,
+      "update_time": user_bookmark[i].update_date,
+      "book": null
+    };
+    tmp.book = await getBookData(user_bookmark[i].isbn).catch((err) => null);
+    userdata.bookmarks.push(tmp);
+  }
+  // とりあえずこれはYYYY-MM-hogehogeを同じ階層に並べているだけ
+  var keys = Object.keys(user_static[0]);
+  for(var i=0; keys.length; i++) {
+    userdata.statistics[keys[i]] = user_static[0][keys[i]];
+  }
   res.status(200);
-  res.json({
-    //return_DATA
-  });
+  res.json(userdata);
 });
-*/
 
 module.exports = router;
