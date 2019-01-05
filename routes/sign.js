@@ -111,25 +111,26 @@ function getBookData(isbn) {
 /* urlの受け口を実装する */
 /* root(/) is /shiwori/. */
 
-/* shiwori純正の確認（今実装されているurlは全てこの関数？を通る） */
-router.all('/*(\(signup\)|\(signin\)|\(book\)|\(bookmark\)|\(record\)|\(user\))', function(req, res, next) {
+/* shiwori純正（signature）の確認 */
+const check_signature = (req, res, next) => {
   console.log("aaaaa");
   if (shiwori.signature(req)) {
     next();
   } else {
     res.status(401).end();
+    return;
   }
-});
+};
 
 /* 登録 */
-router.post('/signup', async function(req, res, next) {
+router.post('/signup', check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("signup...");
   var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 0) {
     res.status(400);
     res.json({"message": "this e-mail is used."});
-    next();
+    return;
   }
   UserCreate(body).then(function(value) {
     res.status(200);
@@ -141,14 +142,14 @@ router.post('/signup', async function(req, res, next) {
 });
 
 
-router.post('/signin', async function(req, res, next) {
+router.post('/signin', check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("singin...");
   var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 1 || db_res[0].password != body.password) {
     res.status(400);
     res.json({"message": "e-mail or password is invalid."});
-    next();
+    return;
   }
   var query = "select * from RECORDS where userid = '" + db_res.id + "'";
   var user_info = db_res;
@@ -160,7 +161,7 @@ router.post('/signin', async function(req, res, next) {
   if (user_record == null | user_static == null | user_bookmark == null) {
     res.status(500);
     res.json({"message": "DataBase Error(can't read)"});
-    next();
+    return;
   }
   var date = new Date();
   var time_msec = date.getTime();
