@@ -114,7 +114,7 @@ function getBookData(isbn) {
 /* shiwori純正の確認（今実装されているurlは全てこの関数？を通る） */
 router.all('/*(\(signup\)|\(signin\)|\(book\)|\(bookmark\)|\(record\)|\(user\))', function(req, res, next) {
   console.log("aaaaa");
-  if (shiwori.signature(req.body.signature)) {
+  if (shiwori.signature(req)) {
     next();
   } else {
     res.status(401).end();
@@ -201,9 +201,11 @@ router.post('/signin', async function(req, res, next) {
     userdata.bookmarks.push(tmp);
   }
   // とりあえずこれはYYYY-MM-hogehogeを同じ階層に並べているだけ
-  var keys = Object.keys(user_static[0]);
-  for(var i=0; keys.length; i++) {
-    userdata.statistics[keys[i]] = user_static[0][keys[i]];
+  if(!user_static) {
+    var keys = Object.keys(user_static[0]);
+    for(var i=0; keys.length; i++) {
+      userdata.statistics[keys[i]] = user_static[0][keys[i]];
+    }
   }
   res.status(200);
   res.json(userdata);
