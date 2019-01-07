@@ -2,25 +2,12 @@
 var express = require('express');
 const request = require('request');
 var router = express.Router();
-var connection = require('./mysql_connection');
+var shiwori = require('./shiwori');
 
 
 /* グローバル変数 */
-const BookData = JSON.stringify(require("../bookdata.json"));
 
 /* 関数 */
-function doRequest(option) {
-  return new Promise(function(resolve, reject) {
-    request(option, function(error, res, body) {
-      if(!error && res.statusCode == 200) {
-        //let data = body.replace(/\\n?/g, "");
-        resolve(JSON.parse(body));
-      } else {
-        reject(body);
-      }
-    });
-  });
-}
 
 
 /* urlの受け口を実装する */
@@ -28,23 +15,13 @@ function doRequest(option) {
 
 /* 本の情報を取得する */
 router.get('/', async function(req, res, next) {
-  const isbn = req.query.isbn;
-  const option = {
-    method: "GET",
-    url: "https://www.googleapis.com/books/v1/volumes",
-    qs: {
-      q: "isbn:" + isbn,
-      Country: "JP"
-    }
+  const bookid = req.query.bookid;
+  const book = await shiwori.getBookData(bookid).catch(() => null);
+  if(!book) {
+    res.status(500).json({"error": "情報を取得できませんでした"});
+    return;
   }
-  var googlebook = await doRequest(option);
-  var googlebook = googlebook.items[0]
-  var book = JSON.parse(BookData);
-  book.author = googlebook.volumeInfo.authors.join(",");
-  book.title = googlebook.volumeInfo.title;
-  book.imgUrl = googlebook.volumeInfo.imageLinks.thumbnail;
-  book.pageData.total = googlebook.volumeInfo.pageCount;
-  res.json(book);
+  res.status(200).json(book);
 });
 
 module.exports = router;

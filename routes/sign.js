@@ -4,7 +4,7 @@ var router = express.Router();
 var util = require('util');
 var uuid = require('uuid');
 const request = require('request');
-const shiwori = require('./shiwori_auth');
+const shiwori = require('./shiwori');
 var connection = require('./mysql_connection');
 
 /* グローバル変数 */
@@ -27,18 +27,7 @@ const default_user_data = {
 };
 
 /* 関数 */
-function connection2(query) {
-  return new Promise(function(resolve, reject) {
-    connection.query(query, function(err, rows) {
-      if(err) {
-        console.log(err);
-        reject("err");
-      } else {
-        resolve(rows);
-      }
-    });
-  });
-}
+
 
 function UserCreate(body) {
   return new Promise(function(resolve, reject) {
@@ -75,55 +64,15 @@ function UserCreate(body) {
   });
 }
 
-function getBookData(isbn) {
-  return new Promise(function(resolve, reject) {
-    const option = {
-      method: "GET",
-      url: "https://www.googleapis.com/books/v1/volumes",
-      qs: {
-        q: "isbn:" + isbn,
-        Country: "JP"
-      }
-    };
-    request(option, function(error, res, body) {
-      if(!error && res.statusCode == 200) {
-        var a = JSON.parse(body);
-        var googlebook = a.items[0];
-        var tmp = {
-          "author": googlebook.volumeInfo.authors.join(","),
-          "title": googlebook.volumeInfo.title,
-          "imgUrl": googlebook.volumeInfo.imageLinks.thumbnail,
-          "publication": "",
-          "page": googlebook.volumeInfo.pageCount
-        };
-        resolve(tmp);
-      } else {
-        reject(error);
-      }
-    });
-  });
-}
-
 
 /* urlの受け口を実装する */
 /* root(/) is /shiwori/. */
 
-/* shiwori純正（signature）の確認 */
-const check_signature = (req, res, next) => {
-  console.log("aaaaa");
-  if (shiwori.signature(req)) {
-    next();
-  } else {
-    res.status(401).end();
-    return;
-  }
-};
-
 /* 登録 */
-router.post('/signup', check_signature, async function(req, res, next) {
+router.post('/signup', shiwori.check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("signup....");
-  var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
+  var db_res = await shiwori.dbAccess("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 0) {
     res.status(400);
     res.json({"message": "this e-mail is used."});
@@ -139,10 +88,10 @@ router.post('/signup', check_signature, async function(req, res, next) {
 });
 
 
-router.post('/signin', check_signature, async function(req, res, next) {
+router.post('/signin', shiwori.check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("singin...");
-  var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
+  var db_res = await shiwori.dbAccess("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 1 || db_res[0].password != body.password) {
     res.status(400);
     res.json({"message": "e-mail or password is invalid."});
@@ -150,11 +99,11 @@ router.post('/signin', check_signature, async function(req, res, next) {
   }
   var query = "select * from RECORDS where userid = '" + db_res.id + "'";
   var user_info = db_res;
-  var user_record = await connection2(query).catch((err) => null);
+  var user_record = await shiwori.dbAccess(query).catch((err) => null);
   query = "select * from STATISTICS where userid = '" + db_res.id + "'";
-  var user_static = await connection2(query).catch((err) => null);
+  var user_static = await shiwori.dbAccess(query).catch((err) => null);
   query = "select * from BOOKMARKS where userid = '" + db_res.id + "'";
-  var user_bookmark = await connection2(query).catch((err) => null);
+  var user_bookmark = await shiwori.dbAccess(query).catch((err) => null);
   if (user_record == null | user_static == null | user_bookmark == null) {
     res.status(500);
     res.json({"message": "DataBase Error(can't read)"});
@@ -184,7 +133,7 @@ router.post('/signin', check_signature, async function(req, res, next) {
       "update_date": user_record[i].update_date,
       "book": null
     };
-    tmp.book = await getBookData(user_record[i].isbn).catch((err) => null);
+    tmp.book = await shiwori.getBookData(user_record[i].bookid).catch((err) => null);
     userdata.records.push(tmp);
   }
   for(var i=0; i>user_bookmark.length; i++) {
@@ -195,7 +144,7 @@ router.post('/signin', check_signature, async function(req, res, next) {
       "update_date": user_bookmark[i].update_date,
       "book": null
     };
-    tmp.book = await getBookData(user_bookmark[i].isbn).catch((err) => null);
+    tmp.book = await shiwori.getBookData(user_bookmark[i].bookid).catch((err) => null);
     userdata.bookmarks.push(tmp);
   }
   // とりあえずこれはYYYY-MM-hogehogeを同じ階層に並べているだけ
@@ -205,8 +154,7 @@ router.post('/signin', check_signature, async function(req, res, next) {
       userdata.statistics[keys[i]] = user_static[0][keys[i]];
     }
   }
-  res.status(200);
-  res.json(userdata);
+  res.status(200).json(userdata);
 });
 
 module.exports = router;
