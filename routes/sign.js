@@ -94,10 +94,7 @@ function getBookData(isbn) {
           "title": googlebook.volumeInfo.title,
           "imgUrl": googlebook.volumeInfo.imageLinks.thumbnail,
           "publication": "",
-          "pageData":{
-              "total": googlebook.volumeInfo.pageCount,
-              "now"  : googlebook.volumeInfo.pageCount
-          }
+          "page": googlebook.volumeInfo.pageCount
         };
         resolve(tmp);
       } else {
@@ -195,7 +192,7 @@ router.post('/signin', check_signature, async function(req, res, next) {
       "id": user_bookmark[i].id,
       "page": user_bookmark[i].page,
       "memo": user_bookmark[i].memo,
-      "update_time": user_bookmark[i].update_date,
+      "update_date": user_bookmark[i].update_date,
       "book": null
     };
     tmp.book = await getBookData(user_bookmark[i].isbn).catch((err) => null);
