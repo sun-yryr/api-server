@@ -6,7 +6,6 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
-    "async": "^2.6.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
     "express": "~4.16.0",
@@ -16,5 +15,6 @@
     "mysql2": "^1.6.4",
     "request": "^2.88.0",
     "uuid": "^3.3.2"
-  }
+  },
+  "devDependencies": {}
 }

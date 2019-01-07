@@ -3,7 +3,6 @@ var express = require('express');
 var router = express.Router();
 var util = require('util');
 const shiwori = require('./shiwori');
-var async = require('async');
 
 /* グローバル変数 */
 
