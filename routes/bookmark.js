@@ -72,8 +72,7 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
     .catch((err) => {
       res.status(500).json({"message": err});
   });
-  var bookmarks = [];
-  async.each(db_data, async function(item, next) {
+  Promise.all(db_data.map(async function(item) {
     var tmp = {
       "userid": item.userid,
       "username": item.username,
@@ -82,10 +81,9 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
       "update_date": item.update_time,
       "book": await shiwori.getBookData(item.bookid)
     };
-    bookmarks.push(tmp);
-    next();
-  }, () => {
-    res.status(200).json(bookmarks);
+    return tmp;
+  })).then((data) => {
+    res.status(200).json(data);
   });
 });
 
