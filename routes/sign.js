@@ -125,7 +125,7 @@ const check_signature = (req, res, next) => {
 /* 登録 */
 router.post('/signup', check_signature, async function(req, res, next) {
   const body = req.body;
-  console.log("signup...");
+  console.log("signup....");
   var db_res = await connection2("select * from USERS where email = '"+body.email+"'");
   if (db_res.length != 0) {
     res.status(400);
