@@ -44,6 +44,7 @@ router.post('/register', shiwori.check_signature, async function(req, res, next)
   });
 });
 
+/* ブックマークの削除 */
 router.delete('/delete', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.delete...");
   shiwori.dbAccess('select * from BOOKMARKS where id="' + req.body.id + '"')
@@ -64,7 +65,7 @@ router.delete('/delete', shiwori.check_signature, async function(req, res, next)
   res.status(200).end();
 })
 
-/* ブックマークの取得 */
+/* ブックマークのList取得 */
 router.get('/list', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.list...");
   const db_data = await shiwori.dbAccess('select * from BOOKMARKS where userid="' + req.query.userid + '"')
