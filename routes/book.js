@@ -15,7 +15,7 @@ var shiwori = require('./shiwori');
 
 /* 本の情報を取得する */
 router.get('/', async function(req, res, next) {
-  const bookid = req.query.bookid;
+  const bookid = req.query.book_id;
   let book = {
     "book": await shiwori.getBookData(bookid).catch(() => null),
     "records": "",
@@ -25,14 +25,14 @@ router.get('/', async function(req, res, next) {
     res.status(500).json({"error": "情報を取得できませんでした"});
     return;
   }
-  const db_res = await shiwori.dbAccess('select * from RECORDS where bookid="' + bookid + '"').catch(() => null);
+  const db_res = await shiwori.dbAccess('SELECT * FROM records WHERE book_id="' + bookid + '"').catch(() => null);
   let star_ave = 0;
   if(db_res && db_res.length != 0) {
     var recordlist = db_res.map((item) => {
       star_ave += item.star;
       var tmp = {
-        "id": item.id,
-        "userid": item.userid,
+        "record_id": item.record_id,
+        "user_id": item.user_id,
         "star": item.star,
         "impression": item.impression,
         "update_date": item.update_date
