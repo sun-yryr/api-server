@@ -59,11 +59,14 @@ exports.getBookData = async function(googleId) {
     var book = {
         "book_id": body.id,
         "title": body.volumeInfo.title,
-        "author": body.volumeInfo.authors.join(","),
+        "author": "情報なし",
         "imgUrl": body.volumeInfo.imageLinks.thumbnail,
         "publication": body.volumeInfo.publisher,
         "page": body.volumeInfo.pageCount
     };
+    if(typeof(body.volumeInfo.authors) == "object") {
+        book.author = body.volumeInfo.authors.join(",");
+    }
     return book;
 }
 
