@@ -77,7 +77,7 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
       "page_num": item.page_num,
       "memo": item.memo,
       "update_date": item.created_date,
-      "book": await shiwori.getBookData(item.bookid)
+      "book": await shiwori.getBookData(item.book_id)
     };
     return tmp;
   })).then((data) => {
