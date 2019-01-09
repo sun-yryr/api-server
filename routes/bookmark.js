@@ -30,7 +30,7 @@ router.post('/register', shiwori.check_signature, async function(req, res, next)
     return;
   }
   var query = 'INSERT INTO bookmarks (user_id, book_id, user_name, page_num, memo, created_date) ';
-  query += util.format('VALUE ("%s", "%s", "%s", %d, "%s", "%s")', user_id, db_res[0].user_name, body.book_id, body.page_num, body.memo, nowtime);
+  query += util.format('VALUE ("%s", "%s", "%s", %d, "%s", "%s")', user_id, body.book_id, db_res[0].user_name, body.page_num, body.memo, nowtime);
   shiwori.dbAccess(query).then((body) => {
     console.log(body);
     res.status(200);
