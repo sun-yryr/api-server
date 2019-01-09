@@ -70,7 +70,7 @@ function UserCreate(body) {
 router.post('/signup', shiwori.check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("signup....");
-  var db_res = await shiwori.dbAccess("SELECT * FROM users WHERE 'e-mail' = '"+body.email+"'");
+  var db_res = await shiwori.dbAccess("SELECT * FROM users WHERE email = '"+body.email+"'");
   if (db_res.length != 0) {
     res.status(400);
     res.json({"message": "this e-mail is used."});
@@ -89,7 +89,7 @@ router.post('/signup', shiwori.check_signature, async function(req, res, next) {
 router.post('/signin', shiwori.check_signature, async function(req, res, next) {
   const body = req.body;
   console.log("singin...");
-  var db_res = await shiwori.dbAccess("SELECT * FROM users WHERE 'e-mail' = '"+body.email+"'");
+  var db_res = await shiwori.dbAccess("SELECT * FROM users WHERE email = '"+body.email+"'");
   if (db_res.length != 1 || db_res[0].password != body.password) {
     res.status(400);
     res.json({"message": "e-mail or password is invalid."});
