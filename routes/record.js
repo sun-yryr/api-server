@@ -22,19 +22,19 @@ function doRequest(option) {
 /* root(/) is /shiwori/. */
 router.post('/', async function(req, res, next) {
   
-    var user_id;
-    var book_id;
-    var user_name;
-    var star;
-    var impression;
-    var readtime;
-    var readspeed;
-    var created_date;
+    var user_id = req.body['user_id'];
+    var book_id = req.body['book_id'];
+    var user_name = req.body['user_name'];;
+    var star = req.body['star'];;
+    var impression = req.body['impression'];
+    var readtime = req.body['readtime'];;
+    var readspeed = req.body['readspeed'];
+    var created_date = req.body['created_date'];
 
     /*最終段を持ってくる */
 
     /*データの登録 */
-    let sql = 'INSERT INTO records VALUES (user_id,book_id,user_name,star,impression,readtime,readspeed,creted_date)';
+    let sql = 'INSERT INTO records (user_id,book_id,user_name,star,impression,readtime,readspeed,creted_date) VALUES (user_id,book_id,user_name,star,impression,readtime,readspeed,creted_date)';
 });
 
 
