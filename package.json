@@ -15,5 +15,6 @@
     "mysql2": "^1.6.4",
     "request": "^2.88.0",
     "uuid": "^3.3.2"
-  }
+  },
+  "devDependencies": {}
 }
