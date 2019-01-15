@@ -16,23 +16,21 @@ const shiwori = require('./shiwori');
 /* ブックマークの登録 */
 router.post('/register', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.register...");
-  var date = new Date();
-  var time_msec = date.getTime();
-  var unixtime = Math.floor(time_msec / 1000);
+  var nowtime = shiwori.getNowTime();
   const body = req.body;
-  const userid = body.userid;
-  var db_res = await shiwori.dbAccess('select name from USERS where id="' + userid + '"')
+  const user_id = body.user_id;
+  var db_res = await shiwori.dbAccess('SELECT user_name FROM users WHERE user_id="' + user_id + '"')
     .catch((err) => {
-      res.status(500).end();
+      res.status(500).json({"message": err});
       return;    
   });
-  if(db_res[0].name == undefined) {
+  if(db_res.length == 0) {
     res.status(400);
-    res.json({"message": "no userid."});
+    res.json({"message": "no user_id."});
     return;
   }
-  var query = 'insert into BOOKMARKS (userid, username, bookid, page, memo, update_time) ';
-  query += util.format('VALUE ("%s", "%s", "%s", %d, "%s", "%s")', userid, db_res[0].name, body.bookid, body.page, body.memo, unixtime);
+  var query = 'INSERT INTO bookmarks (user_id, book_id, user_name, page_num, memo, created_date) ';
+  query += util.format('VALUE ("%s", "%s", "%s", %d, "%s", "%s")', user_id, body.book_id, db_res[0].user_name, body.page_num, body.memo, nowtime);
   shiwori.dbAccess(query).then((body) => {
     console.log(body);
     res.status(200);
@@ -44,12 +42,13 @@ router.post('/register', shiwori.check_signature, async function(req, res, next)
   });
 });
 
+/* ブックマークの削除 */
 router.delete('/delete', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.delete...");
-  shiwori.dbAccess('select * from BOOKMARKS where id="' + req.body.id + '"')
+  shiwori.dbAccess('SELECT * FROM bookmarks WHERE bm_id="' + req.body.bm_id + '"')
     .then((body) => {
-      if(body[0].userid == req.body.userid) {
-        shiwori.dbAccess('delete from BOOKMARKS where id="'+ req.body.id +'"')
+      if(body[0].user_id == req.body.user_id) {
+        shiwori.dbAccess('DELETE FROM bookmarks WHERE bm_id="'+ req.body.bm_id +'"')
           .catch((err) => {
             res.status(400);
             res.json({"message": err});
@@ -64,21 +63,21 @@ router.delete('/delete', shiwori.check_signature, async function(req, res, next)
   res.status(200).end();
 })
 
-/* ブックマークの取得 */
+/* ブックマークのList取得 */
 router.get('/list', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.list...");
-  const db_data = await shiwori.dbAccess('select * from BOOKMARKS where userid="' + req.query.userid + '"')
+  const db_data = await shiwori.dbAccess('SELECT * FROM bookmarks WHERE user_id="' + req.query.user_id + '"')
     .catch((err) => {
       res.status(500).json({"message": err});
   });
   Promise.all(db_data.map(async function(item) {
     var tmp = {
-      "userid": item.userid,
-      "username": item.username,
-      "page": item.page,
+      "user_id": item.user_id,
+      "user_name": item.user_name,
+      "page_num": item.page_num,
       "memo": item.memo,
-      "update_date": item.update_time,
-      "book": await shiwori.getBookData(item.bookid)
+      "update_date": item.created_date,
+      "book": await shiwori.getBookData(item.book_id)
     };
     return tmp;
   })).then((data) => {
