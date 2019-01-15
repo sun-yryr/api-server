@@ -1,5 +1,6 @@
 var connection = require('./mysql_connection');
 const request = require('request');
+var moment = require('moment');
 
 /* shiwori純正アプリからのリクエストか確認するところ。（現在は単に文字列チェックのみである） */
 exports.check_signature = function(req, res, next) {
@@ -56,12 +57,21 @@ exports.getBookData = async function(googleId) {
         return null;
     }
     var book = {
-        "id": body.id,
+        "book_id": body.id,
         "title": body.volumeInfo.title,
-        "author": body.volumeInfo.authors.join(","),
+        "author": "情報なし",
         "imgUrl": body.volumeInfo.imageLinks.thumbnail,
         "publication": body.volumeInfo.publisher,
         "page": body.volumeInfo.pageCount
     };
+    if(typeof(body.volumeInfo.authors) == "object") {
+        book.author = body.volumeInfo.authors.join(",");
+    }
     return book;
+}
+
+exports.getNowTime = function() {
+    var m = moment();
+    var datetime = m.format("YYYY-MM-DD-HH:mm:ss");
+    return datetime;
 }
