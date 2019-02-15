@@ -67,4 +67,29 @@ router.post('/update', async function(req, res, next) {
   res.status(200).end();
 });
 
+
+/* データのList取得 */
+router.get('/list', shiwori.check_signature, async function(req, res, next) {
+  console.log("record.list...");
+  const db_data = await shiwori.dbAccess('SELECT * FROM bookmarks WHERE user_id="' + req.query.user_id + '" AND book_id ="' + req.query.book_id + '"')
+    .catch((err) => {
+      res.status(500).json({"message": err});
+  });
+  Promise.all(db_data.map(async function(item) {
+    var tmp = {
+      "user_id": item.user_id,
+      "book_id": item.book_id,
+      "user＿name": item.user_name,
+      "star": item.star,
+      "impression": item.impression,
+      "readtime": item.readtime,
+      "readspeed": item.readspeed,
+      "created_date": item.created_date
+    };
+    return tmp;
+  })).then((data) => {
+    res.status(200).json(data);
+  });
+});
+
 module.exports = router;
