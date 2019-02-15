@@ -61,7 +61,7 @@ router.post('/change', shiwori.check_signature, async function(req, res, next) {
   shiwori.dbAccess(query).then((body) => {
     console.log(body);
     res.status(200);
-    res.json({"id": body.insertId});
+    res.json({"bm_id": body.insertId});
   }).catch((err) => {
     res.status(400);
     res.json({"message": err});
@@ -99,6 +99,7 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
   });
   Promise.all(db_data.map(async function(item) {
     var tmp = {
+      "bm_id": item.bm_id,
       "user_id": item.user_id,
       "user_name": item.user_name,
       "page_num": item.page_num,
