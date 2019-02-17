@@ -82,6 +82,8 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
     return tmp;
   })).then((data) => {
     res.status(200).json(data);
+  }).catch((data) => {
+    res.status(100).json(data);
   });
 });
 
