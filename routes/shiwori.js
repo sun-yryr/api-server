@@ -27,6 +27,7 @@ exports.doRequest = function(option) {
                 resolve(JSON.parse(body));
             } else {
                 console.log(error);
+                console.log(res.status);
                 reject(error);
             }
         });
@@ -54,16 +55,30 @@ exports.getBookData = async function(googleId) {
     }
     const body = await module.exports.doRequest(option).catch(() => null);
     if(!body) {
+        throw new Error("request null");
         return null;
     }
     var book = {
         "book_id": body.id,
         "title": body.volumeInfo.title,
         "author": "情報なし",
-        "imgUrl": body.volumeInfo.imageLinks.thumbnail,
+        "imgUrl": {
+            "thumbnail": null,
+            "smallThumbnail": null,
+            "small": null,
+            "medium": null,
+            "large": null
+        },
         "publication": body.volumeInfo.publisher,
         "page": body.volumeInfo.pageCount
     };
+    if("imageLinks" in body.volumeInfo) {
+        if("thumbnail" in body.volumeInfo.imageLinks) book.imgUrl.thumbnail = body.volumeInfo.imageLinks.thumbnail;
+        if("smallThumbnail" in body.volumeInfo.imageLinks) book.imgUrl.smallThumbnail = body.volumeInfo.imageLinks.smallThumbnail;
+        if("small" in body.volumeInfo.imageLinks) book.imgUrl.small = body.volumeInfo.imageLinks.small;
+        if("medium" in body.volumeInfo.imageLinks) book.imgUrl.medium = body.volumeInfo.imageLinks.medium;
+        if("large" in body.volumeInfo.imageLinks) book.imgUrl.large = body.volumeInfo.imageLinks.large;
+    }
     if(typeof(body.volumeInfo.authors) == "object") {
         book.author = body.volumeInfo.authors.join(",");
     }
