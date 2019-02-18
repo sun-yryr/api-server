@@ -26,8 +26,9 @@ exports.doRequest = function(option) {
             if(!error && res.statusCode == 200) {
                 resolve(JSON.parse(body));
             } else {
+                console.log("shiwori/doRequest")
                 console.log(error);
-                console.log(res.status);
+                console.log(res.statusCode);
                 reject(error);
             }
         });
@@ -39,6 +40,7 @@ exports.dbAccess = function(query) {
     return new Promise(function(resolve, reject) {
         connection.query(query, function(err, rows) {
             if(err) {
+                console.log("shiwori/dbAccess")
                 console.log(err);
                 reject(err);
             } else {
