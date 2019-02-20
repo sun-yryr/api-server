@@ -12,6 +12,9 @@ router.post('/insert', async function(req, res, next) {
     var book_id = req.body['book_id'];
     var db_res = await shiwori.dbAccess("select user_name from users where user_id='"+user_id+"'");
     var user_name = db_res[0].user_name;
+    if(user_name!=req.body['user_name']) {
+      res.status(400).json({"message": "invalid this user_name."});
+    }
     var star = req.body['star'];
     var impression = req.body['impression'];
     var readtime = req.body['readtime'];
@@ -33,12 +36,12 @@ router.post('/update', async function(req, res, next) {
   
   var user_id = req.body['user_id'];
   var book_id = req.body['book_id'];
-  var user_name = req.body['user_name'];
+  var db_res = await shiwori.dbAccess("select user_name from users where user_id='"+user_id+"'");
+  var user_name = db_res[0].user_name;
   var star = req.body['star'];
   var impression = req.body['impression'];
   var readtime = req.body['readtime'];
   var readspeed = req.body['readspeed'];
-  var key = req.body['key'];
   var created_date = shiwori.getNowTime();
 
   /*最終段を持ってくる */
@@ -46,8 +49,8 @@ router.post('/update', async function(req, res, next) {
   /*データの登録 */
   // UPDATE テーブル名 SET カラム名=`値`[, カラム名=`値`, ... ] WHERE 条件式;
 
-  var sql = util.format('UPDATE records SET user_id = "%s" [,book_id="%s",user_name="%s",star=%d,impression="%s",readtime="%s",readspeed=%d,created_date="%s"] WHERE key="%s"',user_id,book_id,user_name,star,impression,readtime,readspeed,created_date,key);
-  var db_res =await shiwori.dbAccess(sql).catch((err)=>{
+  var sql = util.format('UPDATE records SET user_id = "%s" ,book_id="%s",user_name="%s",star=%d,impression="%s",readtime="%s",readspeed=%d,created_date="%s" WHERE key="%s"',user_id,book_id,user_name,star,impression,readtime,readspeed,created_date,key);
+  db_res =await shiwori.dbAccess(sql).catch((err)=>{
     console.log(err);
     res.status(500).json({"message":err});
   });
