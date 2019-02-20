@@ -131,7 +131,7 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
     tmp.book = await shiwori.getBookData(user_record[i].book_id).catch((err) => null);
     userdata.records.push(tmp);
   }
-  for(var i=0; i>user_bookmark.length; i++) {
+  for(var i=0; i<user_bookmark.length; i++) {
     let tmp = {
       "bm_id": user_bookmark[i].bm_id,
       "page_num": user_bookmark[i].page_num,
