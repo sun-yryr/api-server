@@ -115,7 +115,7 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
   userdata.userinfo.all_readbooks_count = user_info[0].all_readbooks_count;
   userdata.userinfo.create_date = user_info[0].created_date;
   userdata.userinfo.update_date = user_info[0].created_date;
-  userdata.userinfo.speed = user_info[0].all_readspeed;
+  userdata.userinfo.all_speed = user_info[0].all_readspeed;
   userdata.userinfo.email = user_info[0].email;
   for(var i=0; i<user_record.length; i++) {
     let tmp = {
