@@ -77,8 +77,8 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
       "created_date": item.created_date
     };
     return tmp;
-  })).then((data) => {
-    res.status(200).json(data);
+  })).then((tmp) => {
+    res.status(200).json(tmp);
   });
 });
 

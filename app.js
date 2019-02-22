@@ -9,7 +9,7 @@ var userRouter = require('./routes/user');
 var markRouter = require('./routes/bookmark');
 var recordRouter = require('./routes/record');
 var signRouter = require('./routes/sign');
-
+var deviceRouter = require('./routes/device');
 var app = express();
 
 // view engine setup
@@ -27,6 +27,8 @@ app.use('/shiwori/book', bookRouter);
 app.use('/shiwori/user', userRouter);
 app.use('/shiwori/bookmark', markRouter);
 app.use('/shiwori/record', recordRouter);
+app.use('/shiwori/device', deviceRouter);
+
 
 
 // catch 404 and forward to error handler
