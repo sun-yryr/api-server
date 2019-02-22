@@ -10,7 +10,7 @@ router.post('/insert', shiwori.check_signature, async function(req, res, next) {
   console.log("device.post...");
   var user_id = req.body['user_id'];
   var db_res = await shiwori.dbAccess("select current_book_id from users where user_id='"+user_id+"'");
-  if(!db_res[0]){
+  if(db_res.length != 1){
     res.status(500).end();
     return;
   }
