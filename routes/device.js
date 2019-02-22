@@ -38,19 +38,8 @@ router.get('/get', async function(req, res, next) {
     .catch((err) => {
       res.status(500).json({"message": err});
   });
-  Promise.all(db_data.map(async function(item) {//
-    var tmp = {
-      "user_id": item.user_id,
-      "book_id": item.book_id,
-      "timestamp": item.user_name,
-      "page_num": item.star,
-      "readtime": item.readtime,
-      "readspeed": item.readspeed,
-    };
-    return tmp;
-  })).then((data) => {
-    res.status(200).json(data);
-  });
+  res.status(200).json(db_res);
+
 });
 
 module.exports = router;
