@@ -20,7 +20,7 @@ const default_user_data = {
     "all_readtime": "",
     "all_readbooks_count": 0,
     "all_readspeed": 0,
-    "current_book_id":
+    "current_book_id": null
   },
   "records": [],
   "bookmarks": [],
