@@ -20,7 +20,7 @@ const default_user_data = {
     "all_readtime": "",
     "all_readbooks_count": 0,
     "all_readspeed": 0,
-    "current_book_id": null
+    "current_book_id":
   },
   "records": [],
   "bookmarks": [],
@@ -96,14 +96,20 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
     res.json({"message": "e-mail or password is invalid."});
     return;
   }
-  var query = "SELECT * FROM records WHERE user_id = '" + db_res.user_id + "'";
+  const user_id = db_res[0].user_id;
+  var query = "SELECT * FROM records WHERE user_id = '" + user_id + "'";
+  var db_res = await shiwori.dbAccess("SELECT * FROM users WHERE user_id = '"+user_id+"'");
+  if(db_res.length != 1) {
+    res.status(400).json({"message":"no user."});
+    return;
+  }
   var user_info = db_res;
   var user_record = await shiwori.dbAccess(query).catch((err) => null);
-  query = "SELECT * FROM statistics WHERE user_id = '" + db_res.user_id + "'";
+  query = "SELECT * FROM statistics WHERE user_id = '" + user_id + "'";
   var user_static = await shiwori.dbAccess(query).catch((err) => null);
-  query = "SELECT * FROM bookmarks WHERE user_id = '" + db_res.user_id + "'";
-  var user_bookmark = await shiwori.dbAccess(query).catch((err) => null);
-  if (user_record == null | user_static == null | user_bookmark == null) {
+  //query = "SELECT * FROM bookmarks WHERE user_id = '" + user_id + "'";
+  //var user_bookmark = await shiwori.dbAccess(query).catch((err) => null);
+  if (user_record == null | user_static == null /*| user_bookmark == null*/) {
     res.status(500);
     res.json({"message": "DataBase Error(can't read)"});
     return;
@@ -116,7 +122,7 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
   userdata.userinfo.all_readbooks_count = user_info[0].all_readbooks_count;
   userdata.userinfo.create_date = user_info[0].created_date;
   userdata.userinfo.update_date = user_info[0].created_date;
-  userdata.userinfo.all_speed = user_info[0].all_readspeed;
+  userdata.userinfo.all_readspeed = user_info[0].all_readspeed;
   userdata.userinfo.email = user_info[0].email;
   userdata.userinfo.current_book_id = user_info[0].current_book_id;
   for(var i=0; i<user_record.length; i++) {
@@ -133,6 +139,7 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
     tmp.book = await shiwori.getBookData(user_record[i].book_id).catch((err) => null);
     userdata.records.push(tmp);
   }
+  /*
   for(var i=0; i<user_bookmark.length; i++) {
     let tmp = {
       "bm_id": user_bookmark[i].bm_id,
@@ -143,7 +150,7 @@ router.post('/signin', shiwori.check_signature, async function(req, res, next) {
     };
     tmp.book = await shiwori.getBookData(user_bookmark[i].book_id).catch((err) => null);
     userdata.bookmarks.push(tmp);
-  }
+  }*/
   // とりあえずこれはYYYY-MM-hogehogeを同じ階層に並べているだけ
   if(!user_static) {
     var keys = Object.keys(user_static[0]);
