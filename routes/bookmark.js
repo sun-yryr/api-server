@@ -57,11 +57,10 @@ router.post('/change', shiwori.check_signature, async function(req, res, next) {
     res.json({"message": "no user_id."});
     return;
   }
-  var query = util.format('UPDATE bookmarks SET memo = "%s", created_date = "%s" WHERE bm_id = "%s"', body.memo, nowtime);
+  var query = util.format('UPDATE bookmarks SET memo = "%s", created_date = "%s" WHERE bm_id = "%s"', body.memo, nowtime, body.bm_id);
   shiwori.dbAccess(query).then((body) => {
     console.log(body);
-    res.status(200);
-    res.json({"bm_id": body.insertId});
+    res.status(200).end();
   }).catch((err) => {
     res.status(400);
     res.json({"message": err});

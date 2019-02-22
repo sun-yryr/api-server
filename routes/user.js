@@ -15,7 +15,8 @@ const default_user_data = {
     "email": "",
     "all_readtime": "",
     "all_readbooks_count": 0,
-    "all_readspeed": 0
+    "all_readspeed": 0,
+    "current_book_id": null
   },
   "records": [],
   "statistics":[]
@@ -98,6 +99,7 @@ router.get('/home', shiwori.check_signature, async function(req, res, next) {
   userdata.userinfo.update_date = user_info[0].created_date;
   userdata.userinfo.all_readspeed = user_info[0].all_readspeed;
   userdata.userinfo.email = user_info[0].email;
+  userdata.userinfo.current_book_id = user_info[0].current_book_id;
   for(var i=0; i<user_record.length; i++) {
     let tmp = {
       "record_id": user_record[i].record_id,
