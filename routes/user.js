@@ -49,11 +49,11 @@ router.post('/current_book', shiwori.check_signature,async function(req, res, ne
   
   var user_id = req.body['user_id'];
   var sql = util.format('SELECT * FROM users WHERE user_id="%s"',user_id);
-  var db_res  = await shiwori.dbAccess(sql)
+  var db_res  = await shiwori.dbAccess(sql);
   if(db_res.length != 1){
     res.status(500).json({
       "message": "this userid is not found"
-    })
+    });
     return;
   }
   var current_book_id = req.body['current_book_id'];
@@ -68,6 +68,7 @@ router.post('/current_book', shiwori.check_signature,async function(req, res, ne
     console.log(err);
     res.status(500).json({"message":err});
   });
+  res.status(200).end();
 });
 
 router.get('/home', shiwori.check_signature, async function(req, res, next) {
