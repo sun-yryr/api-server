@@ -2,6 +2,8 @@ var connection = require('./mysql_connection');
 const request = require('request');
 var moment = require('moment');
 
+const api_key = process.env.GBooksAPI;
+
 /* shiwori純正アプリからのリクエストか確認するところ。（現在は単に文字列チェックのみである） */
 exports.check_signature = function(req, res, next) {
     console.log("署名確認");
@@ -27,7 +29,7 @@ exports.doRequest = function(option) {
                 resolve(JSON.parse(body));
             } else {
                 console.log("shiwori/doRequest")
-                console.log(error);
+                console.log(body);
                 console.log(res.statusCode);
                 reject(error);
             }
@@ -53,7 +55,7 @@ exports.dbAccess = function(query) {
 exports.getBookData = async function(googleId) {
     const option = {
         method: "GET",
-        url: "https://www.googleapis.com/books/v1/volumes/" + googleId
+        url: "https://www.googleapis.com/books/v1/volumes/" + googleId + "?key=" + api_key
     }
     const body = await module.exports.doRequest(option).catch(() => null);
     if(!body) {
