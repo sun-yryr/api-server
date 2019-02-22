@@ -66,6 +66,8 @@ router.post('/current_book', shiwori.check_signature,async function(req, res, ne
   db_res =await shiwori.dbAccess(sql).catch((err)=>{
     console.log(err);
     res.status(500).json({"message":err});
+  });
+});
 
 router.get('/home', shiwori.check_signature, async function(req, res, next) {
   const user_id = req.query.user_id;
@@ -130,7 +132,7 @@ router.get('/home', shiwori.check_signature, async function(req, res, next) {
     }
   }
   res.status(200).json(userdata);
-})
+});
 
 router.post('/change', shiwori.check_signature, async function(req, res, next) {
   var query = 'UPDATE users ';
@@ -138,7 +140,6 @@ router.post('/change', shiwori.check_signature, async function(req, res, next) {
   const db_res = await shiwori.dbAccess(query).catch((err) => {
     res.status(500).json({"message": err});
     return;
-
   });
   res.status(200).end();
 });
