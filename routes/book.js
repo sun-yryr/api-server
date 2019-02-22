@@ -21,7 +21,7 @@ router.get('/', async function(req, res, next) {
     "records": "",
     "star_average": ""
   }
-  if(!book) {
+  if(!book.book) {
     res.status(500).json({"error": "情報を取得できませんでした"});
     return;
   }

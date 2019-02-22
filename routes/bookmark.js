@@ -42,6 +42,33 @@ router.post('/register', shiwori.check_signature, async function(req, res, next)
   });
 });
 
+router.post('/change', shiwori.check_signature, async function(req, res, next) {
+  console.log("bookmark.change...");
+  var nowtime = shiwori.getNowTime();
+  const body = req.body;
+  const user_id = body.user_id;
+  var db_res = await shiwori.dbAccess('SELECT user_name FROM users WHERE user_id="' + user_id + '"')
+    .catch((err) => {
+      res.status(500).json({"message": err});
+      return;    
+  });
+  if(db_res.length == 0) {
+    res.status(400);
+    res.json({"message": "no user_id."});
+    return;
+  }
+  var query = util.format('UPDATE bookmarks SET memo = "%s", created_date = "%s" WHERE bm_id = "%s"', body.memo, nowtime);
+  shiwori.dbAccess(query).then((body) => {
+    console.log(body);
+    res.status(200);
+    res.json({"bm_id": body.insertId});
+  }).catch((err) => {
+    res.status(400);
+    res.json({"message": err});
+    return;
+  });
+});
+
 /* ブックマークの削除 */
 router.delete('/delete', shiwori.check_signature, async function(req, res, next) {
   console.log("bookmark.delete...");
@@ -72,6 +99,7 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
   });
   Promise.all(db_data.map(async function(item) {
     var tmp = {
+      "bm_id": item.bm_id,
       "user_id": item.user_id,
       "user_name": item.user_name,
       "page_num": item.page_num,
@@ -82,6 +110,8 @@ router.get('/list', shiwori.check_signature, async function(req, res, next) {
     return tmp;
   })).then((data) => {
     res.status(200).json(data);
+  }).catch((data) => {
+    res.status(100).json(data);
   });
 });
 
