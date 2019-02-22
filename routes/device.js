@@ -18,7 +18,7 @@ router.post('/insert', shiwori.check_signature, async function(req, res, next) {
     var timestamp = shiwori.getNowTime();
     var page_num = req.body['page_num'];
     var readtime = req.body['readtime'];
-    var readspeed = req.body['readspeed'];
+    var readspeed = (readtime / 60000)/ page_num;
 
     /*最終段を持ってくる */
 
