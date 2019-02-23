@@ -43,11 +43,11 @@ router.get('/current', async function(req, res, next) {
   }
   var book = await shiwori.getBookData(db_res[0].current_book_id);
   let url = "";
-  //if(book.imgUrl.smallThumbnail != null) url = book.imgUrl.smallThumbnail;
-  //else if(book.imgUrl.small != null) url = book.imgUrl.small;
-  //else if(book.imgUrl.thumbnail != null) url = book.imgUrl.thumbnail;
-  //else if(book.imgUrl.medium != null) url = book.imgUrl.medium;
   if(book.imgUrl.large != null) url = book.imgUrl.large;
+  else if(book.imgUrl.medium != null) url = book.imgUrl.medium;
+  else if(book.imgUrl.small != null) url = book.imgUrl.small;
+  else if(book.imgUrl.thumbnail != null) url = book.imgUrl.thumbnail;
+  else if(book.imgUrl.smallThumbnail != null) url = book.imgUrl.smallThumbnail;
   else {
     res.status(300).end();
     return;
