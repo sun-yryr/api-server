@@ -2,6 +2,8 @@
 var express = require('express');
 var shiwori = require('./shiwori');
 var util = require('util');
+var Jimp = require('jimp');
+var fs = require('fs');
 var router = express.Router();
 
 /* urlの受け口を実装する */
@@ -30,6 +32,38 @@ router.post('/insert', shiwori.check_signature, async function(req, res, next) {
   });
   res.status(200).end();
 });
+
+/* current aaa */
+router.get('/current', async function(req, res, next) {
+  const user_id = req.query.user_id;
+  var db_res = await shiwori.dbAccess('SELECT current_book_id FROM users WHERE user_id="'+user_id+'"');
+  if(db_res[0].current_book_id == null) {
+    res.status(300).end();
+    return;
+  }
+  var book = await shiwori.getBookData(db_res[0].current_book_id);
+  let url = "";
+  if(book.imgUrl.smallThumbnail != null) url = book.imgUrl.smallThumbnail;
+  else if(book.imgUrl.small != null) url = book.imgUrl.small;
+  else if(book.imgUrl.thumbnail != null) url = book.imgUrl.thumbnail;
+  else if(book.imgUrl.medium != null) url = book.imgUrl.medium;
+  else if(book.imgUrl.large != null) url = book.imgUrl.large;
+  else {
+    res.status(300).end();
+    return;
+  }
+  Jimp.read(url, function(err, image) {
+    if(err) {
+      res.status(400).json(err);
+      return;
+    }
+    image.scaleToFit(180, 180);
+    image.greyscale();
+    const path = "public/images/"+user_id+".bmp";
+    image.write(path);
+    res.sendStatus(200);
+  });
+})
 
 /* データのList取得 */
 router.get('/get', async function(req, res, next) {
