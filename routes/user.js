@@ -71,7 +71,7 @@ router.post('/current_book', shiwori.check_signature,async function(req, res, ne
   });
   var option = {
     method: "GET",
-    url: "http://118.27.33.105/shiwori/device/current&user_id="+user_id
+    url: "http://118.27.33.105/shiwori/device/current?user_id="+user_id
   };
   request(option, function(err,res,body){
     console.log("callback");
