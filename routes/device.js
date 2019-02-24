@@ -75,7 +75,20 @@ router.get('/get', async function(req, res, next) {
       res.status(500).json({"message": err});
   });
   res.status(200).json(db_res);
-
 });
+
+router.post('/update', shiwori.check_signature, async function(req, res, next) {
+  const id = req.body.id;
+  var db_res = await shiwori.dbAccess('SELECT user_id FROM device WHERE id='+id);
+  if(db_res[0].user_id != req.body.user_id) {
+    res.sendStatus(340);
+    return;
+  }
+  var query = util.format("UPDATE device SET page_num=%d, readtime=%d WHERE id=%d", page_num, readtime, id);
+  var db_res = await shiwori.dbAccess(query).catch((err) => {
+    res.status(500).json({"message": err});
+  });
+  res.sendStatus(200);
+})
 
 module.exports = router;
