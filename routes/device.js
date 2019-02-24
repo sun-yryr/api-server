@@ -79,6 +79,8 @@ router.get('/get', async function(req, res, next) {
 
 router.post('/update', shiwori.check_signature, async function(req, res, next) {
   const id = req.body.id;
+  const page_num = req.body.page_num;
+  const readtime = req.body.readtime;
   var db_res = await shiwori.dbAccess('SELECT user_id FROM device WHERE id='+id);
   if(db_res[0].user_id != req.body.user_id) {
     res.sendStatus(340);
