@@ -2,6 +2,7 @@
 var express = require('express');
 var router = express.Router();
 var shiwori = require('./shiwori');
+var request = require('request');
 var util = require('util');
 /* グローバル変数 */
 const default_user_data = {
@@ -67,6 +68,14 @@ router.post('/current_book', shiwori.check_signature,async function(req, res, ne
   db_res =await shiwori.dbAccess(sql).catch((err)=>{
     console.log(err);
     res.status(500).json({"message":err});
+  });
+  var option = {
+    method: "GET",
+    url: "http://118.27.33.105/shiwori/device/current&user_id="+user_id
+  };
+  request(option, function(err,res,body){
+    console.log("callback");
+    console.log(res.statusCode);
   });
   res.status(200).end();
 });
